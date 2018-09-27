@@ -1,0 +1,21 @@
+sudo: required
+
+services:
+  -docker
+
+before_install:
+  - docker build -t kiano/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run kiano/react-test yarn test -- --coverage
+
+after_success:
+  - docker build -t kiano/multi-client ./client
+  - docker build -t kiano/multi-nginx ./nginx
+  - docker build -t kiano/multi-server ./server
+  - docker build -t kiano/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kiano/multi-client
+  - docker push kiano/multi-nginx
+  - docker push kiano/multi-server
+  - docker push kiano/multi-worker
